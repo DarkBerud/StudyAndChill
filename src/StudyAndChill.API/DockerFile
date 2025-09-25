@@ -1,0 +1,17 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /src
+
+COPY ["src/StudyAndChill.API/StudyAndChill.API.csproj", "src/StudyAndChill.API/"]
+RUN dotnet restore "src/StudyAndChill.API/StudyAndChill.API.csproj"
+
+COPY . .
+WORKDIR "/src/src/StudyAndChill.API"
+RUN dotnet build "StudyAndChill.API.csproj" -c Release -o /app/build
+
+FROM build AS publish
+RUN dotnet publish "StudyAndChill.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "StudyAndChill.API.dll"]
