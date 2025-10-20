@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using StudyAndChill.API.Enums;
 
 namespace StudyAndChill.API.Models
 {
@@ -12,9 +13,11 @@ namespace StudyAndChill.API.Models
         public string Email { get; set; }
         public byte[]? PasswordHash { get; set; }
         public byte[]? PasswordSalt { get; set; }
-        public string Role { get; set; }
+        public UserRole Role { get; set; }
         public string? IconUrl { get; set; }
         public DateTime CreatedAt { get; set; }
+        public List<ClassSession> ClassSessions { get; set; } = new();
+        public List<ClassSession> TaughtClasses { get; set; } = new();
 
     }
 }

@@ -12,8 +12,8 @@ using StudyAndChill.API.Data;
 namespace StudyAndChill.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251008160241_UpdateTeacherAvailabilityTable")]
-    partial class UpdateTeacherAvailabilityTable
+    [Migration("20251009143531_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -88,6 +88,9 @@ namespace StudyAndChill.API.Migrations
                     b.Property<int>("TeacherId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("TeacherId");
@@ -123,9 +126,8 @@ namespace StudyAndChill.API.Migrations
                     b.Property<byte[]>("PasswordSalt")
                         .HasColumnType("bytea");
 
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("Role")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 

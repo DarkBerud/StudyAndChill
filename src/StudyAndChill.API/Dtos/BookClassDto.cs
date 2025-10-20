@@ -6,14 +6,12 @@ using System.Threading.Tasks;
 
 namespace StudyAndChill.API.Dtos
 {
-    public class CreateTeacherDto
+    public class BookClassDto
     {
         [Required]
-        [StringLength(100)]
-        public string Name { get; set; }
+        public int TeacherId { get; set; }
 
         [Required]
-        [StringLength(50)]
-        public string Subject { get; set; }
+        public DateTime StartTime { get; set; }
     }
 }

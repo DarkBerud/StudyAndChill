@@ -10,6 +10,8 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:8080
+      - JWT_SECRET=${JWT_SECRET}
+      - ConnectionStrings__DefaultConnection=${CONNECTION_STRING}
     depends_on:
       - db
 

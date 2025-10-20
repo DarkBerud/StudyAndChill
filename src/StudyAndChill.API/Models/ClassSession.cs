@@ -6,14 +6,14 @@ using StudyAndChill.API.Enums;
 
 namespace StudyAndChill.API.Models
 {
-    public class TeacherAvailability
+    public class ClassSession
     {
         public int Id { get; set; }
-        public DayOfWeek DayOfWeek { get; set; }
-        public TimeOnly AvailableFrom { get; set; }
-        public TimeOnly AvailableTo { get; set; }
-        public AvailabilityType Type { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public ClassStatus Status { get; set; }
         public int TeacherId { get; set; }
         public User Teacher { get; set; }
+        public List<User> Students { get; set; } = new();
     }
 }

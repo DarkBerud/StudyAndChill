@@ -7,18 +7,19 @@ using StudyAndChill.API.Enums;
 
 namespace StudyAndChill.API.Dtos
 {
-    public class CreateAvailabilityDto
+    public class CreateScheduleDto
     {
         [Required]
+        public int StudentId { get; set; }
+        [Required]
+        public int TeacherId { get; set; }
+        [Required]
         public DayOfWeek DayOfWeek { get; set; }
-
         [Required]
-        public TimeOnly AvailableFrom { get; set; }
-
+        public TimeOnly ClassTime { get; set; }
         [Required]
-        public TimeOnly AvailableTo { get; set; }
-
+        public ClassDuration DurationInMinutes { get; set; }
         [Required]
-        public AvailabilityType Type { get; set; }
+        public DateOnly EndDate { get; set; }
     }
 }

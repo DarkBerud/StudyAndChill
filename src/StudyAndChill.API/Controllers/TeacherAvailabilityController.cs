@@ -44,7 +44,8 @@ namespace StudyAndChill.API.Controllers
                     DayOfWeek = i.DayOfWeek,
                     AvailableFrom = i.AvailableFrom,
                     AvailableTo = i.AvailableTo,
-                    TeacherId = teacherId
+                    TeacherId = teacherId,
+                    Type = i.Type
                 };
                 newAvailabilities.Add(availability);
             }
@@ -124,10 +125,21 @@ namespace StudyAndChill.API.Controllers
             availability.AvailableTo = dto.AvailableTo;
             availability.DayOfWeek = dto.DayOfWeek;
 
-            
+
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        [HttpGet("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAvailability(int id)
+        {
+            var Availabilities = await _context.TeacherAvailabilities
+                .Where(a => a.TeacherId == id)
+                .ToListAsync();
+
+            return Ok(Availabilities);
         }
     }
 }

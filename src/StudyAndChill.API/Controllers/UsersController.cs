@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StudyAndChill.API.Data;
 using StudyAndChill.API.Dtos;
+using StudyAndChill.API.Enums;
 using StudyAndChill.API.Models;
 
 namespace StudyAndChill.API.Controllers
@@ -28,16 +29,21 @@ namespace StudyAndChill.API.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserDto request)
         {
-            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
+            if (!Enum.TryParse<UserRole>(request.Role, true, out UserRole userRole))
             {
-                return BadRequest("Já existe um usuário registrado neste e-mail.");
+                return BadRequest("Tipo de usuário inválido");
             }
+
+            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
+                {
+                    return BadRequest("Já existe um usuário registrado neste e-mail.");
+                }
 
             var user = new User
             {
                 Name = request.Name,
                 Email = request.Email,
-                Role = request.Role,
+                Role = userRole,
                 CreatedAt = DateTime.UtcNow
             };
 

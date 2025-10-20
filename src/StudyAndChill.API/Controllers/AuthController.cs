@@ -29,31 +29,6 @@ namespace StudyAndChill.API.Controllers
             _configuration = configuration;
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] UserRegisterDto request)
-        {
-            if (await _context.Users.AnyAsync(u => u.Email == request.Email))
-            {
-                return BadRequest("Já existe um usuário registrado neste e-mail.");
-            }
-
-            CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
-
-            var user = new User
-            {
-                Name = request.Name,
-                Email = request.Email,
-                PasswordHash = passwordHash,
-                PasswordSalt = passwordSalt,
-                Role = "Student"
-            };
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            return Ok(new { user.Id, user.Email, user.Role });
-        }
-
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserRegisterDto request)
@@ -120,11 +95,11 @@ namespace StudyAndChill.API.Controllers
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role)
+                new Claim(ClaimTypes.Role, user.Role.ToString())
             };
 
             var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(
-                _configuration.GetSection("AppSettings:Token").Value
+                _configuration["JWT_SECRET"]
             ));
 
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
