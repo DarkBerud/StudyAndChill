@@ -7,15 +7,18 @@ using StudyAndChill.API.Enums;
 
 namespace StudyAndChill.API.Dtos
 {
-    public class BookClassDto
+    public class UpdateStudentProfileDto
     {
         [Required]
-        public int TeacherId { get; set; }
+        public string Phone { get; set; }
 
         [Required]
-        public DateTime StartTime { get; set; }
+        public DocumentType DocumentType { get; set; }
 
         [Required]
-        public ClassDuration Duration { get; set; }
+        public string DocumentNumber { get; set; }
+
+        [Required]
+        public AddressDto Address { get; set; }
     }
 }

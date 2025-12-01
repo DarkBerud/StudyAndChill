@@ -3,6 +3,7 @@ using StudyAndChill.API.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using StudyAndChill.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +57,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         ValidateAudience = false
     };
 });
+
+builder.Services.AddHttpClient<IHolidayService, HolidayService>();
+builder.Services.AddHttpClient<IAsaasService, AsaasService>();
 
 var app = builder.Build();
 

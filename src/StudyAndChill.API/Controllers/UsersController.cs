@@ -48,6 +48,16 @@ namespace StudyAndChill.API.Controllers
             };
 
             _context.Users.Add(user);
+
+            if(user.Role == UserRole.Student)
+            {
+                var studentProfile = new StudentProfile
+                {
+                    User = user,
+
+                };
+                _context.StudentProfiles.Add(studentProfile);
+            }
             await _context.SaveChangesAsync();
 
             var invitationToken = Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));

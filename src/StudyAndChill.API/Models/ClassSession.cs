@@ -12,8 +12,11 @@ namespace StudyAndChill.API.Models
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public ClassStatus Status { get; set; }
+        public DateTime? MakeUpExpiryDate { get; set; }
+        public int ContractId { get; set; }
+        public Contract Contract { get; set; } = null!;
         public int TeacherId { get; set; }
-        public User Teacher { get; set; }
+        public User Teacher { get; set; } = null!;
         public List<User> Students { get; set; } = new();
     }
 }

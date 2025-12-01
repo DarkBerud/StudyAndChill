@@ -12,6 +12,8 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - JWT_SECRET=${JWT_SECRET}
       - ConnectionStrings__DefaultConnection=${CONNECTION_STRING}
+      - ASAAS_API_KEY=${ASAAS_API_KEY}
+      - ASAAS_URL=${ASAAS_URL}
     depends_on:
       - db
 

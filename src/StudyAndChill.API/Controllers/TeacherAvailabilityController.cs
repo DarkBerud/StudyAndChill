@@ -141,5 +141,65 @@ namespace StudyAndChill.API.Controllers
 
             return Ok(Availabilities);
         }
+
+        [HttpGet("makeup")]
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> GetMakeUpAvailability()
+        {
+            var studentIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (studentIdString == null)
+            {
+                return Unauthorized();
+            }
+
+            var studentId = int.Parse(studentIdString);
+
+            var activeContract = await _context.Contracts.FirstOrDefaultAsync(c => c.StudentId == studentId && c.Status == Enums.ContractStatus.Active);
+
+            if (activeContract == null)
+            {
+                return BadRequest("Nenhum contrato ativo encontrado");
+            }
+
+            var teacherId = activeContract.TeacherId;
+
+            var Availabilities = await _context.TeacherAvailabilities
+            .Where(a => a.TeacherId == teacherId && (a.Type == Enums.AvailabilityType.MakeUp || a.Type == Enums.AvailabilityType.Both))
+            .ToListAsync();
+
+            return Ok(Availabilities);
+        }
+
+        [HttpPost("holiday-work")]
+        [Authorize(Roles = "Teacher")]
+        public async Task<IActionResult> SetHolidayWork([FromBody] SetHolidayWorkDto dto)
+        {
+            var teacherIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (teacherIdString == null) return Unauthorized();
+            var teacherId = int.Parse(teacherIdString);
+
+            var existingWork = await _context.TeacherHolidayWorks
+                .FirstOrDefaultAsync(w => w.TeacherId == teacherId && w.Date == dto.Date);
+
+            if (dto.WantsToWork)
+            {
+                if (existingWork == null)
+                {
+                    var work = new TeacherHolidayWork {TeacherId = teacherId, Date = dto.Date};
+                    _context.TeacherHolidayWorks.Add(work);
+                    await _context.SaveChangesAsync();
+                }
+                return Ok($"O dia {dto.Date} foi disponibilizado");
+            }
+            else
+            {
+                if (existingWork !=null)
+                {
+                    _context.TeacherHolidayWorks.Remove(existingWork);
+                    await _context.SaveChangesAsync();
+                }
+                return Ok($"O dia {dto.Date} foi marcado como não disponível");
+            }
+        }
     }
 }

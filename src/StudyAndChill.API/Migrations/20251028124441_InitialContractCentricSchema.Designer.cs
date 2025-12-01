@@ -12,8 +12,8 @@ using StudyAndChill.API.Data;
 namespace StudyAndChill.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251014174235_AddClassSessionTable")]
-    partial class AddClassSessionTable
+    [Migration("20251028124441_InitialContractCentricSchema")]
+    partial class InitialContractCentricSchema
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,6 +25,21 @@ namespace StudyAndChill.API.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("ClassSessionUser", b =>
+                {
+                    b.Property<int>("ClassSessionsId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StudentsId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ClassSessionsId", "StudentsId");
+
+                    b.HasIndex("StudentsId");
+
+                    b.ToTable("ClassSessionUser", (string)null);
+                });
+
             modelBuilder.Entity("StudyAndChill.API.Models.ClassSession", b =>
                 {
                     b.Property<int>("Id")
@@ -33,10 +48,13 @@ namespace StudyAndChill.API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("ContractId")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime>("SatartDate")
+                    b.Property<DateTime>("StartDate")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Status")
@@ -47,12 +65,14 @@ namespace StudyAndChill.API.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ContractId");
+
                     b.HasIndex("TeacherId");
 
-                    b.ToTable("classSessions");
+                    b.ToTable("ClassSessions");
                 });
 
-            modelBuilder.Entity("StudyAndChill.API.Models.Student", b =>
+            modelBuilder.Entity("StudyAndChill.API.Models.Contract", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -60,21 +80,43 @@ namespace StudyAndChill.API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<bool>("CanBookMakeUpClasses")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("ClassDuration")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("MakeUpQuota")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("StudentId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("TeacherId")
                         .HasColumnType("integer");
 
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("StudentId");
 
                     b.HasIndex("TeacherId");
 
-                    b.ToTable("Students");
+                    b.ToTable("Contracts");
                 });
 
-            modelBuilder.Entity("StudyAndChill.API.Models.Teacher", b =>
+            modelBuilder.Entity("StudyAndChill.API.Models.StudentProfile", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -82,17 +124,15 @@ namespace StudyAndChill.API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Subject")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Teachers");
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("StudentProfiles");
                 });
 
             modelBuilder.Entity("StudyAndChill.API.Models.TeacherAvailability", b =>
@@ -133,9 +173,6 @@ namespace StudyAndChill.API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<int?>("ClassSessionId")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -160,8 +197,6 @@ namespace StudyAndChill.API.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ClassSessionId");
 
                     b.ToTable("Users");
                 });
@@ -192,26 +227,68 @@ namespace StudyAndChill.API.Migrations
                     b.ToTable("UserInvitations");
                 });
 
-            modelBuilder.Entity("StudyAndChill.API.Models.ClassSession", b =>
+            modelBuilder.Entity("ClassSessionUser", b =>
                 {
-                    b.HasOne("StudyAndChill.API.Models.User", "Teacher")
+                    b.HasOne("StudyAndChill.API.Models.ClassSession", null)
                         .WithMany()
-                        .HasForeignKey("TeacherId")
+                        .HasForeignKey("ClassSessionsId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("StudyAndChill.API.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("StudentsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("StudyAndChill.API.Models.ClassSession", b =>
+                {
+                    b.HasOne("StudyAndChill.API.Models.Contract", "Contract")
+                        .WithMany("ClassSessions")
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("StudyAndChill.API.Models.User", "Teacher")
+                        .WithMany("TaughtClasses")
+                        .HasForeignKey("TeacherId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Contract");
 
                     b.Navigation("Teacher");
                 });
 
-            modelBuilder.Entity("StudyAndChill.API.Models.Student", b =>
+            modelBuilder.Entity("StudyAndChill.API.Models.Contract", b =>
                 {
-                    b.HasOne("StudyAndChill.API.Models.Teacher", "Teacher")
-                        .WithMany("Students")
+                    b.HasOne("StudyAndChill.API.Models.User", "Student")
+                        .WithMany()
+                        .HasForeignKey("StudentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("StudyAndChill.API.Models.User", "Teacher")
+                        .WithMany()
                         .HasForeignKey("TeacherId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Student");
+
+                    b.Navigation("Teacher");
+                });
+
+            modelBuilder.Entity("StudyAndChill.API.Models.StudentProfile", b =>
+                {
+                    b.HasOne("StudyAndChill.API.Models.User", "User")
+                        .WithOne()
+                        .HasForeignKey("StudyAndChill.API.Models.StudentProfile", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Teacher");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("StudyAndChill.API.Models.TeacherAvailability", b =>
@@ -225,21 +302,14 @@ namespace StudyAndChill.API.Migrations
                     b.Navigation("Teacher");
                 });
 
+            modelBuilder.Entity("StudyAndChill.API.Models.Contract", b =>
+                {
+                    b.Navigation("ClassSessions");
+                });
+
             modelBuilder.Entity("StudyAndChill.API.Models.User", b =>
                 {
-                    b.HasOne("StudyAndChill.API.Models.ClassSession", null)
-                        .WithMany("Students")
-                        .HasForeignKey("ClassSessionId");
-                });
-
-            modelBuilder.Entity("StudyAndChill.API.Models.ClassSession", b =>
-                {
-                    b.Navigation("Students");
-                });
-
-            modelBuilder.Entity("StudyAndChill.API.Models.Teacher", b =>
-                {
-                    b.Navigation("Students");
+                    b.Navigation("TaughtClasses");
                 });
 #pragma warning restore 612, 618
         }

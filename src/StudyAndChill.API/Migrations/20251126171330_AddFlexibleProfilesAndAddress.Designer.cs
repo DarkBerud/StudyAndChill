@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StudyAndChill.API.Data;
@@ -11,9 +12,11 @@ using StudyAndChill.API.Data;
 namespace StudyAndChill.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251126171330_AddFlexibleProfilesAndAddress")]
+    partial class AddFlexibleProfilesAndAddress
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -95,16 +98,10 @@ namespace StudyAndChill.API.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AsaasSubscriptionId")
-                        .HasColumnType("text");
-
                     b.Property<bool>("CanBookMakeUpClasses")
                         .HasColumnType("boolean");
 
                     b.Property<int>("ClassDuration")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("DueDay")
                         .HasColumnType("integer");
 
                     b.Property<DateOnly>("EndDate")
@@ -112,9 +109,6 @@ namespace StudyAndChill.API.Migrations
 
                     b.Property<int>("MakeUpQuota")
                         .HasColumnType("integer");
-
-                    b.Property<decimal>("MonthlyAmount")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateOnly>("StartDate")
                         .HasColumnType("date");
@@ -127,9 +121,6 @@ namespace StudyAndChill.API.Migrations
 
                     b.Property<int>("TeacherId")
                         .HasColumnType("integer");
-
-                    b.Property<decimal>("TeacherPaymentShare")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Type")
                         .HasColumnType("integer");
@@ -166,48 +157,6 @@ namespace StudyAndChill.API.Migrations
                     b.ToTable("Holidays");
                 });
 
-            modelBuilder.Entity("StudyAndChill.API.Models.Payment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AsaasInvoiceUrl")
-                        .HasColumnType("text");
-
-                    b.Property<string>("AsaasPaymentId")
-                        .HasColumnType("text");
-
-                    b.Property<string>("AsaasPixQrCode")
-                        .HasColumnType("text");
-
-                    b.Property<int>("ContractId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateOnly>("DueDate")
-                        .HasColumnType("date");
-
-                    b.Property<decimal?>("NetValue")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime?>("PaymentDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("Value")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ContractId");
-
-                    b.ToTable("Payments");
-                });
-
             modelBuilder.Entity("StudyAndChill.API.Models.StudentProfile", b =>
                 {
                     b.Property<int>("Id")
@@ -223,9 +172,6 @@ namespace StudyAndChill.API.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
-
-                    b.Property<int>("DocumentType")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Phone")
                         .IsRequired()
@@ -271,42 +217,6 @@ namespace StudyAndChill.API.Migrations
                     b.HasIndex("TeacherId");
 
                     b.ToTable("TeacherAvailabilities");
-                });
-
-            modelBuilder.Entity("StudyAndChill.API.Models.TeacherFinancialRecord", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int?>("RelatedContractId")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("TeacherId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("TransactionDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RelatedContractId");
-
-                    b.HasIndex("TeacherId");
-
-                    b.ToTable("TeacherFinancialRecords");
                 });
 
             modelBuilder.Entity("StudyAndChill.API.Models.TeacherHolidayWork", b =>
@@ -363,12 +273,6 @@ namespace StudyAndChill.API.Migrations
 
                     b.Property<string>("PixKey")
                         .HasColumnType("text");
-
-                    b.Property<int?>("PixKeyType")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("PreferredPaymentDay")
-                        .HasColumnType("integer");
 
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
@@ -510,17 +414,6 @@ namespace StudyAndChill.API.Migrations
                     b.Navigation("Teacher");
                 });
 
-            modelBuilder.Entity("StudyAndChill.API.Models.Payment", b =>
-                {
-                    b.HasOne("StudyAndChill.API.Models.Contract", "Contract")
-                        .WithMany("Payments")
-                        .HasForeignKey("ContractId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Contract");
-                });
-
             modelBuilder.Entity("StudyAndChill.API.Models.StudentProfile", b =>
                 {
                     b.HasOne("StudyAndChill.API.Models.User", "User")
@@ -588,23 +481,6 @@ namespace StudyAndChill.API.Migrations
                         .HasForeignKey("TeacherId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Teacher");
-                });
-
-            modelBuilder.Entity("StudyAndChill.API.Models.TeacherFinancialRecord", b =>
-                {
-                    b.HasOne("StudyAndChill.API.Models.Contract", "RelatedContract")
-                        .WithMany()
-                        .HasForeignKey("RelatedContractId");
-
-                    b.HasOne("StudyAndChill.API.Models.User", "Teacher")
-                        .WithMany()
-                        .HasForeignKey("TeacherId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("RelatedContract");
 
                     b.Navigation("Teacher");
                 });
@@ -683,8 +559,6 @@ namespace StudyAndChill.API.Migrations
             modelBuilder.Entity("StudyAndChill.API.Models.Contract", b =>
                 {
                     b.Navigation("ClassSessions");
-
-                    b.Navigation("Payments");
                 });
 
             modelBuilder.Entity("StudyAndChill.API.Models.User", b =>

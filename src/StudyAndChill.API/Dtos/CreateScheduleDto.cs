@@ -21,5 +21,7 @@ namespace StudyAndChill.API.Dtos
         public ClassDuration DurationInMinutes { get; set; }
         [Required]
         public DateOnly EndDate { get; set; }
+        [Required]
+        public int ContractId { get; set; }
     }
 }

@@ -18,6 +18,7 @@ namespace StudyAndChill.API.Models
         public DateTime CreatedAt { get; set; }
         public List<ClassSession> ClassSessions { get; set; } = new();
         public List<ClassSession> TaughtClasses { get; set; } = new();
+        public List<Holiday> SpecificHoliday {get; set; } = new();
 
     }
 }

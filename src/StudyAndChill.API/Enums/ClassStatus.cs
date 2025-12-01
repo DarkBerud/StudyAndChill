@@ -5,6 +5,9 @@ namespace StudyAndChill.API.Enums
         Scheduled,
         Completed,
         CancelByTeacher,
-        CancelByStudent
+        CancelByStudent,
+        AbsentNoMakeUp,
+        MissedCanMakeUp,
+        Reposed
     }
 }

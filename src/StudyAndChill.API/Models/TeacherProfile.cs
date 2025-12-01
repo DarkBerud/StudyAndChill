@@ -7,7 +7,7 @@ using StudyAndChill.API.Enums;
 
 namespace StudyAndChill.API.Models
 {
-    public class StudentProfile
+    public class TeacherProfile
     {
         public int Id { get; set; }
 
@@ -23,10 +23,21 @@ namespace StudyAndChill.API.Models
 
         public Address Address { get; set; } = new();
 
-        public string? AsaasCustomerId { get; set; }
+        public string? BankCode { get; set; }
+
+        public string? Agency { get; set; }
+
+        public string? AccountNumber { get; set; }
+
+        public string? PixKey { get; set; }
+
+        public PixKeyType? PixKeyType { get; set; }
 
         public int UserId { get; set; }
 
         public User User { get; set; } = null!;
+
+        [Range(1, 31)]
+        public int? PreferredPaymentDay { get; set; }
     }
 }
