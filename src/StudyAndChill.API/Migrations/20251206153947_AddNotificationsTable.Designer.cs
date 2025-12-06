@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using StudyAndChill.API.Data;
@@ -11,9 +12,11 @@ using StudyAndChill.API.Data;
 namespace StudyAndChill.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251206153947_AddNotificationsTable")]
+    partial class AddNotificationsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -50,42 +53,6 @@ namespace StudyAndChill.API.Migrations
                     b.HasIndex("SpecificHolidayId");
 
                     b.ToTable("UserHolidays", (string)null);
-                });
-
-            modelBuilder.Entity("StudyAndChill.API.Models.AuditLog", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("DateTime")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("NewValues")
-                        .HasColumnType("text");
-
-                    b.Property<string>("OldValues")
-                        .HasColumnType("text");
-
-                    b.Property<string>("PrimaryKey")
-                        .HasColumnType("text");
-
-                    b.Property<string>("TableName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AuditLogs");
                 });
 
             modelBuilder.Entity("StudyAndChill.API.Models.ClassSession", b =>

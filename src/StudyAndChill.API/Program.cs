@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using StudyAndChill.API.Services;
+using StudyAndChill.API.BackgroundServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,6 +61,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddHttpClient<IHolidayService, HolidayService>();
 builder.Services.AddHttpClient<IAsaasService, AsaasService>();
+builder.Services.AddHostedService<ContractExpirationNotifier>();
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 

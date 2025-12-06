@@ -379,5 +379,63 @@ namespace StudyAndChill.API.Controllers
 
         }
 
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> GetClasses([FromQuery] DateTime start, [FromQuery] DateTime end, [FromQuery] int? teacherId = null, [FromQuery] int? studentId = null)
+        {
+            start = DateTime.SpecifyKind(start, DateTimeKind.Utc);
+            end = DateTime.SpecifyKind(end, DateTimeKind.Utc);
+
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userRoleString = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (userIdString == null || userRoleString == null) return Unauthorized();
+
+            var currentUserId = int.Parse(userIdString);
+            var currentUserRole = Enum.Parse<UserRole>(userRoleString);
+
+            var query = _context.ClassSessions
+                .Include(cs => cs.Teacher)
+                .Include(cs => cs.Students)
+                .Where(cs => cs.StartDate >= start && cs.EndDate <= end)
+                .AsQueryable();
+
+            switch (currentUserRole)
+            {
+                case UserRole.Student:
+                    query = query.Where(cs => cs.Students.Any(s => s.Id == currentUserId));
+                    break;
+                case UserRole.Teacher:
+                    query = query.Where(cs => cs.TeacherId == currentUserId);
+                    break;
+                case UserRole.Admin:
+                    if (teacherId.HasValue)
+                        query = query.Where(cs => cs.TeacherId == currentUserId);
+
+                    if (studentId.HasValue)
+                        query = query.Where(cs => cs.Students.Any(s => s.Id == currentUserId));
+                    break;
+            }
+
+            var sessions = await query
+                .OrderBy(cs => cs.StartDate)
+                .Select(cs => new ClassSessionDto
+                {
+                    Id = cs.Id,
+                    Start = cs.StartDate,
+                    End = cs.EndDate,
+                    Status = cs.Status,
+                    TeacherId = cs.TeacherId,
+                    TeacherName = cs.Teacher.Name,
+                    Students = cs.Students.Select(s => new StudentSummaryDto
+                    {
+                        Id = s.Id,
+                        Name = s.Name
+                    }).ToList()
+                }).ToListAsync();
+
+            return Ok(sessions);
+        }
+
     }
 }
