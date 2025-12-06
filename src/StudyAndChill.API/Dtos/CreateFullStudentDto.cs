@@ -41,6 +41,9 @@ namespace StudyAndChill.API.Dtos
         public decimal MonthlyAmount { get; set; }
 
         [Required]
+        public decimal TeacherPaymentShare { get; set; }
+
+        [Required]
         [Range(1, 31)]
         public int DueDay { get; set; }
 

@@ -14,8 +14,12 @@ services:
       - ConnectionStrings__DefaultConnection=${CONNECTION_STRING}
       - ASAAS_API_KEY=${ASAAS_API_KEY}
       - ASAAS_URL=${ASAAS_URL}
+      - ASAAS_WEBHOOK_TOKEN=${ASAAS_WEBHOOK_TOKEN}
+      - OWNER_TEACHER_ID=${OWNER_TEACHER_ID}
     depends_on:
       - db
+    volumes:
+      - ./uploads_data:/app/Uploads
 
   db:
     image: postgres:15

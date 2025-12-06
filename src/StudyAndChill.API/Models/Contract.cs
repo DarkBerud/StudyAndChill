@@ -25,7 +25,7 @@ namespace StudyAndChill.API.Models
 
         public int MakeUpQuota { get; set; }
         public bool CanBookMakeUpClasses { get; set; } = true;
-        
+
         public List<ClassSession> ClassSessions { get; set; } = new();
 
         [Column(TypeName = "decimal(18,2)")]
@@ -36,5 +36,7 @@ namespace StudyAndChill.API.Models
         public string? AsaasSubscriptionId { get; set; }
 
         public List<Payment> Payments { get; set; } = new();
+
+        public string? ContractPdfUrl { get; set; }
     }
 }
