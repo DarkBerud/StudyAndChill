@@ -5,8 +5,20 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using StudyAndChill.API.Services;
 using StudyAndChill.API.BackgroundServices;
+using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(Options =>
+{
+    Options.AddPolicy("AllowReactApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173")
+            
+            .AllowAnyHeader()
+            .AllowAnyMethod();   
+    });
+});
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
@@ -73,7 +85,11 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseCors("AllowReactApp");
+
+app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
 // app.UseHttpsRedirection();

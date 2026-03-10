@@ -31,7 +31,7 @@ namespace StudyAndChill.API.Controllers
 
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] UserRegisterDto request)
+        public async Task<IActionResult> Login([FromBody] LoginDto request)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
             if (user == null)
