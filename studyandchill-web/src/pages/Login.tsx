@@ -20,20 +20,36 @@ const Login = () => {
         setLoading(true);
 
         try {
-            const response = await api.post('/auth/login', { email, password});
+            const response = await api.post('/auth/login', { email, password });
 
-            const token = response.data.token;
-            localStorage.setItem('token', token);
-            localStorage.setItem('user', JSON.stringify(response.data));
+            const tokenStr = typeof response.data === 'string' ? response.data : response.data.token;
+
+            const base64Url = tokenStr.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''))
+
+            const decodedToken = JSON.parse(jsonPayload);
+
+
+
+            const userData = {
+                email: email,
+                name: decodedToken.name || decodedToken.unique_name || 'Usuário',
+                role: decodedToken.role || 'Student'
+            };
+
+            localStorage.setItem('token', tokenStr);
+            localStorage.setItem('user', JSON.stringify(userData));
 
             navigate('/dashboard');
         } catch (err: unknown) {
             console.error(err);
 
-            if (axios.isAxiosError(err) && err.response){
-                const backendErrors= err.response.data.errors;
-                if (backendErrors)
-                {
+            if (axios.isAxiosError(err) && err.response) {
+                const backendErrors = err.response.data.errors;
+                if (backendErrors) {
                     if (backendErrors.Email) {
                         setError(backendErrors.Email[0]);
                     } else if (backendErrors.Password) {
@@ -47,14 +63,14 @@ const Login = () => {
             } else {
                 setError('Ocorreu um erro de conexão.');
             }
-            
+
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <Container component='main' maxWidth='xs' sx={{height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+        <Container component='main' maxWidth='xs' sx={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Paper
                 elevation={0}
                 sx={{
@@ -68,28 +84,28 @@ const Login = () => {
                     width: '100%'
                 }}
             >
-                <Box sx={{ mb: 2}}>
+                <Box sx={{ mb: 2 }}>
                     <AnimatedLogo size={100} />
                 </Box>
 
-                <Typography component='h1' variant='h4' sx={{mb: 3, fontFamily: 'Bodoni Moda', color: theme.palette.primary.main }}>
+                <Typography component='h1' variant='h4' sx={{ mb: 3, fontFamily: 'Bodoni Moda', color: theme.palette.primary.main }}>
                     Welcome
                 </Typography>
 
-                {error && <Alert severity='error' sx={{ width: '100%', mb: 2}}>{error}</Alert>}
+                {error && <Alert severity='error' sx={{ width: '100%', mb: 2 }}>{error}</Alert>}
 
-                <Box component='form' onSubmit={handleLogin} sx={{width: '100%'}}>
+                <Box component='form' onSubmit={handleLogin} sx={{ width: '100%' }}>
                     <TextField
-                    margin='normal'
-                    fullWidth
-                    label='E-mail'
-                    autoComplete='email'
-                    autoFocus
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    sx={{
-                        '&. MuiOutlinedInput-root': {borderRadius: 3}
-                    }}
+                        margin='normal'
+                        fullWidth
+                        label='E-mail'
+                        autoComplete='email'
+                        autoFocus
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        sx={{
+                            '& .MuiOutlinedInput-root': { borderRadius: 3 }
+                        }}
                     />
                     <TextField
                         margin='normal'
@@ -100,7 +116,7 @@ const Login = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         sx={{
-                            '&. MuiOutlinedInput-root': {borderRadius: 3}
+                            '& .MuiOutlinedInput-root': { borderRadius: 3 }
                         }}
                     />
 
@@ -116,16 +132,16 @@ const Login = () => {
                             borderRadius: 3,
                             bgcolor: theme.palette.primary.main,
                             fontSize: '1.1rem',
-                            '&:hover': { bgcolor: theme.palette.secondary.main}
+                            '&:hover': { bgcolor: theme.palette.secondary.main }
                         }}
                     >
-                        {loading ? <CircularProgress  size={24} color='inherit' /> : 'Entrar'}
+                        {loading ? <CircularProgress size={24} color='inherit' /> : 'Entrar'}
                     </Button>
 
                     <Button
                         fullWidth
                         onClick={() => navigate("/")}
-                        sx={{ color: theme.palette.text.secondary}}
+                        sx={{ color: theme.palette.text.secondary }}
                     >
                         Voltar
                     </Button>

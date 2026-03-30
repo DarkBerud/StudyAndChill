@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StudyAndChill.API.Data;
+using StudyAndChill.API.Dtos;
 using StudyAndChill.API.Dtos.Financial;
 using StudyAndChill.API.Enums;
 using StudyAndChill.API.Models;
@@ -182,7 +183,44 @@ namespace StudyAndChill.API.Controllers
             return Ok(new { message = "Pagamento registrado com sucesso!", recordId = record.Id });
         }
 
-        
+        [HttpGet("student/invoices")]
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> GetMyInvoices()
+        {
+            var studentIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (studentIdString == null)
+            {
+                return Unauthorized("Usuário não identificado");
+            }
+            var studentId = int.Parse(studentIdString);
+
+            var payments = await _context.Payments
+                .Include(p => p.Contract)
+                .Where(p => p.Contract.StudentId == studentId)
+                .OrderByDescending(p => p.DueDate)
+                .ToListAsync();
+
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+            var invoiceDtos = payments.Select(p => new InvoiceDto
+            {
+                Id = p.Id.ToString(),
+                Description = $"Mensalidade - Contrato # {p.ContractId}",
+                DueDate = p.DueDate.ToDateTime(TimeOnly.MinValue),
+                Amount = p.Value,
+                Status = GetInvoiceStatus(p.Status, p.DueDate, today),
+                PaymentLink = p.AsaasInvoiceUrl
+            }).ToList();
+
+            return Ok(invoiceDtos);
+        }
+
+        private string GetInvoiceStatus(PaymentStatus status, DateOnly dueDate, DateOnly today)
+        {
+            if (status == PaymentStatus.Received) return "Paga";
+            if (dueDate < today && status != PaymentStatus.Received) return "Atrasada";
+            return "Pendente";
+        }
 
     }
 }

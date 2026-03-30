@@ -95,7 +95,8 @@ namespace StudyAndChill.API.Controllers
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role.ToString())
+                new Claim(ClaimTypes.Role, user.Role.ToString()),
+                new Claim(ClaimTypes.Name, user.Name)
             };
 
             var key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(

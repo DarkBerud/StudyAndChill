@@ -105,17 +105,19 @@ namespace StudyAndChill.API.Controllers
             var studentId = int.Parse(studentIdString);
 
             var contracts = await _context.Contracts
+                .Include(c => c.Teacher)
                 .Where(c => c.StudentId == studentId)
                 .OrderByDescending(c => c.StartDate)
                 .Select(c => new
                 {
-                    c.Id,
-                    c.Type,
-                    c.Status,
-                    c.StartDate,
-                    c.EndDate,
-                    c.MonthlyAmount,
-                    c.ContractPdfUrl
+                    Id = c.Id,
+                    TeacherName = c.Teacher.Name,
+                    Status = (int)c.Status,
+                    StartDate = c.StartDate,
+                    EndDate = c.EndDate,
+                    MonthlyAmount = c.MonthlyAmount,
+                    MakeUpQuota = c.MakeUpQuota,
+                    ContractPdfUrl = c.ContractPdfUrl != null ? $"/contracts/{c.Id}/pdf" : null
                 }).ToListAsync();
 
             return Ok(contracts);
