@@ -215,10 +215,74 @@ namespace StudyAndChill.API.Controllers
             return Ok(invoiceDtos);
         }
 
+        [HttpGet("teacher/commissions")]
+        [Authorize(Roles = "Teacher")]
+        public async Task<IActionResult> GetTeacherCommissions()
+        {
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdString == null) return Unauthorized();
+            var teacherId = int.Parse(userIdString);
+
+            var teacherProfile = await _context.TeacherProfiles
+                .FirstOrDefaultAsync(tp => tp.UserId == teacherId);
+
+            int paymentDay = teacherProfile?.PreferredPaymentDay ?? 20;
+
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+            DateOnly GetSafeDate(int year, int month, int day)
+            {
+                int daysInMonth = DateTime.DaysInMonth(year, month);
+                return new DateOnly(year, month, Math.Min(day, daysInMonth));
+            }
+
+            DateOnly initCycle;
+            DateOnly endCycle;
+
+            if (today.Day >= paymentDay)
+            {
+                initCycle = GetSafeDate(today.Year, today.Month, paymentDay);
+                endCycle = initCycle.AddMonths(1).AddDays(-1);
+            }
+            else
+            {
+                var lastMonth = today.AddMonths(-1);
+                initCycle = GetSafeDate(lastMonth.Year, lastMonth.Month, paymentDay);
+                endCycle = initCycle.AddMonths(1).AddDays(-1);
+            }
+
+            var payments = await _context.Payments
+                .Include(p => p.Contract)
+                .ThenInclude(c => c.Student)
+                .Where(p => p.Contract.TeacherId == teacherId)
+                .Where(p => p.DueDate >= initCycle && p.DueDate <= endCycle)
+                .OrderByDescending(p => p.DueDate)
+                .ToListAsync();
+
+            var commissions = payments.Select(p => new
+            {
+                Id = p.Id,
+                StudentName = p.Contract.Student.Name,
+                ContractId = p.ContractId,
+                DueDate = p.DueDate.ToDateTime(TimeOnly.MinValue).ToString("yyyy-MM-dd"),
+                CommissionAmount = p.Contract.TeacherPaymentShare, 
+                Status = GetCommissionStatus(p.Status, p.DueDate, today)
+            }).ToList();
+
+            return Ok(commissions);
+        }
+
         private string GetInvoiceStatus(PaymentStatus status, DateOnly dueDate, DateOnly today)
         {
             if (status == PaymentStatus.Received) return "Paga";
             if (dueDate < today && status != PaymentStatus.Received) return "Atrasada";
+            return "Pendente";
+        }
+
+        private string GetCommissionStatus(PaymentStatus status, DateOnly dueDate, DateOnly today)
+        {
+            if (status == PaymentStatus.Received) return "Recebido";
+            if (dueDate < today && status != PaymentStatus.Received) return "Atrasado";
             return "Pendente";
         }
 

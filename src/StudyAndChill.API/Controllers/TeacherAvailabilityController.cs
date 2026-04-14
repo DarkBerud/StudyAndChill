@@ -39,6 +39,10 @@ namespace StudyAndChill.API.Controllers
 
             foreach (var i in dtos)
             {
+                if (i.AvailableFrom.Minute % 15 != 0 || i.AvailableTo.Minute % 15 != 0)
+                {
+                    return BadRequest();
+                }
                 var availability = new TeacherAvailability
                 {
                     DayOfWeek = i.DayOfWeek,
@@ -96,10 +100,44 @@ namespace StudyAndChill.API.Controllers
                 return NotFound();
             }
 
+            var futureClasses = await _context.ClassSessions
+                .Include(cs => cs.Students)
+                .Where(cs => cs.TeacherId == teacherId &&
+                             cs.Status == Enums.ClassStatus.Scheduled &&
+                             cs.StartDate > DateTime.UtcNow)
+                .ToListAsync();
+
+            var conflictingClasses = futureClasses.Where(cs =>
+                cs.StartDate.DayOfWeek == availability.DayOfWeek &&
+                TimeOnly.FromDateTime(cs.StartDate) >= availability.AvailableFrom &&
+                TimeOnly.FromDateTime(cs.StartDate) < availability.AvailableTo
+            ).Select(cs => new
+            {
+                classId = cs.Id,
+                date = cs.StartDate.ToString("dd/MM/yyyy HH:mm"),
+                studentName = cs.Students.FirstOrDefault()?.Name ?? "Aluno"
+            }).ToList();
+
             _context.TeacherAvailabilities.Remove(availability);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            if (conflictingClasses.Any())
+            {
+                return Ok(new
+                {
+                    success = true,
+                    hasConflicts = true,
+                    message = "Disponibilidade removida para o futuro. ATENÇÃO: Você ainda possui aulas marcadas neste horário que precisam da sua atenção.",
+                    conflicts = conflictingClasses
+                });
+            }
+
+            return Ok(new
+            {
+                success = true,
+                hasConflicts = false,
+                message = "Disponibilidade removida com sucesso!"
+            });
         }
 
         [HttpPut("{id}")]
@@ -185,7 +223,7 @@ namespace StudyAndChill.API.Controllers
             {
                 if (existingWork == null)
                 {
-                    var work = new TeacherHolidayWork {TeacherId = teacherId, Date = dto.Date};
+                    var work = new TeacherHolidayWork { TeacherId = teacherId, Date = dto.Date };
                     _context.TeacherHolidayWorks.Add(work);
                     await _context.SaveChangesAsync();
                 }
@@ -193,7 +231,7 @@ namespace StudyAndChill.API.Controllers
             }
             else
             {
-                if (existingWork !=null)
+                if (existingWork != null)
                 {
                     _context.TeacherHolidayWorks.Remove(existingWork);
                     await _context.SaveChangesAsync();

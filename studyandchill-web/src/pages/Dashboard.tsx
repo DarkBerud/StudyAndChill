@@ -6,6 +6,7 @@ import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import SchoolIcon from '@mui/icons-material/School';
 import DescriptionIcon from '@mui/icons-material/Description';
+import EventAvailableIcon from '@mui/icons-material/EventAvailable';
 import { useNavigate } from 'react-router-dom';
 
 interface DashboardCard {
@@ -13,6 +14,7 @@ interface DashboardCard {
     icon: React.ReactNode;
     color: string;
     textColor: string;
+    route?: string;
 }
 
 const Dashboard = () => {
@@ -36,15 +38,16 @@ const Dashboard = () => {
     ];
   } else if (role === 'Teacher') {
     cards = [
-      { title: 'Minhas Aulas', icon: <CalendarMonthIcon sx={{ fontSize: 48 }}/>, color: theme.palette.custom.salmon, textColor: '#fff' },
-      { title: 'Meus Alunos', icon: <PeopleAltIcon sx={{ fontSize: 48 }}/>, color: theme.palette.custom.lightBlue, textColor: theme.palette.primary.main },
-      { title: 'Minhas Comissões', icon: <AttachMoneyIcon sx={{ fontSize: 48 }}/>, color: theme.palette.custom.purple, textColor: '#fff' },
+      { title: 'Minhas Aulas', icon: <CalendarMonthIcon sx={{ fontSize: 48 }}/>, color: theme.palette.custom.salmon, textColor: '#fff', route: '/agenda' },
+      { title: 'Meus Alunos', icon: <PeopleAltIcon sx={{ fontSize: 48 }}/>, color: theme.palette.custom.lightBlue, textColor: theme.palette.primary.main, route: '/alunos' },
+      { title: 'Financeiro', icon: <AttachMoneyIcon sx={{ fontSize: 48 }}/>, color: theme.palette.custom.purple, textColor: '#fff', route: '/financeiro' },
+      { title: 'Meus Horários', icon: <EventAvailableIcon sx={{ fontSize: 48 }}/>, color: theme.palette.custom.pink, textColor: '#fff', route: '/availability' }
     ];
   } else {
     cards = [
-      { title: 'Agenda\nde Aulas', icon: <CalendarMonthIcon sx={{ fontSize: 48 }}/>, color: theme.palette.custom.salmon, textColor: '#fff' },
-      { title: 'Contrato', icon: <MenuBookIcon sx={{ fontSize: 48 }}/>, color: theme.palette.custom.pink, textColor: '#fff' },
-      { title: 'Minhas Faturas', icon: <DescriptionIcon sx={{ fontSize: 48 }}/>, color: theme.palette.custom.lightBlue, textColor: theme.palette.primary.main },
+      { title: 'Agenda\nde Aulas', icon: <CalendarMonthIcon sx={{ fontSize: 48 }}/>, color: theme.palette.custom.salmon, textColor: '#fff', route: '/agenda' },
+      { title: 'Contrato', icon: <MenuBookIcon sx={{ fontSize: 48 }}/>, color: theme.palette.custom.pink, textColor: '#fff', route: '/contratos' },
+      { title: 'Minhas Faturas', icon: <DescriptionIcon sx={{ fontSize: 48 }}/>, color: theme.palette.custom.lightBlue, textColor: theme.palette.primary.main, route: '/faturas' },
     ];
   }
 
@@ -74,14 +77,10 @@ const Dashboard = () => {
                                 overflow: 'hidden'
                             }}
                             onClick={() => {
-                                 if (card.title === 'Agenda\nde Aulas' || card.title === 'Minhas Aulas') {
-                                    navigate('/agenda');
-                                 } else if (card.title === 'Financeiro' || card.title == 'Minhas Faturas'){
-                                    navigate('/faturas');
-                                } else if (card.title ==='Contrato') {
-                                    navigate('/contratos');
+                                if (card.route) {
+                                    navigate(card.route)
                                 } else {
-                                    alert(`Navegar para ${card.title} (Em construção)`);
+                                    alert(`Navegar para ${card.title.replace('\n', ' ')} (Em construção)`)
                                 }
               }}
                         >

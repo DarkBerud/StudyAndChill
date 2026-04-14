@@ -18,5 +18,6 @@ namespace StudyAndChill.API.Models
         public int TeacherId { get; set; }
         public User Teacher { get; set; } = null!;
         public List<User> Students { get; set; } = new();
+        public string? MeetingURL { get; set; }
     }
 }

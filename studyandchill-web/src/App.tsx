@@ -10,6 +10,9 @@ import Dashboard from './pages/Dashboard';
 import Agenda from './pages/Agenda';
 import Invoices from './pages/Invoices'
 import Contracts from './pages/Contracts';
+import Students from './pages/Students';
+import Financial from './pages/Financial';
+import MyAvailability from './pages/MyAvailability';
 
 
 function App() {
@@ -29,6 +32,12 @@ function App() {
           <Route path='/faturas' element={<ProtectedRoute><DashboardLayout><Invoices /></DashboardLayout></ProtectedRoute>} />
 
           <Route path='/contratos' element={<ProtectedRoute><DashboardLayout><Contracts /></DashboardLayout></ProtectedRoute>} />
+
+          <Route path='/alunos' element={<ProtectedRoute><DashboardLayout><Students /></DashboardLayout></ProtectedRoute>} />
+
+          <Route path='/financeiro' element={<ProtectedRoute><DashboardLayout><Financial /></DashboardLayout></ProtectedRoute>} />
+
+          <Route path='/availability' element={<ProtectedRoute><DashboardLayout><MyAvailability /></DashboardLayout></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>

@@ -16,6 +16,8 @@ namespace StudyAndChill.API.Dtos
         public int TeacherId { get; set; }
         public string TeacherName { get; set; } = string.Empty;
 
+        public string? MeetingUrl { get; set; }
+
         public List<StudentSummaryDto> Students { get; set; }
     }
 

@@ -223,10 +223,13 @@ namespace StudyAndChill.API.Controllers
                 return NotFound("Aluno não encontrado");
             }
 
+            var duration = (int)activeContract.ClassDuration > 0 ? (int)activeContract.ClassDuration : 60;
+
             var classSession = new ClassSession
             {
                 StartDate = dto.StartTime,
                 TeacherId = activeContract.TeacherId,
+                Contract = activeContract,
                 EndDate = dto.StartTime.AddMinutes((int)dto.Duration),
                 Status = ClassStatus.Scheduled,
                 Students = new List<User> { student }
@@ -250,7 +253,7 @@ namespace StudyAndChill.API.Controllers
         [Authorize(Roles = "Admin, Teacher")]
         public async Task<IActionResult> UpdateClassStatus(int id, [FromBody] UpdateClassStatusDto dto)
         {
-            var classSession = await _context.ClassSessions.FindAsync(id);
+            var classSession = await _context.ClassSessions.Include(cs => cs.Contract).FirstOrDefaultAsync(cs => cs.Id == id);
 
             if (classSession == null)
             {
@@ -285,6 +288,15 @@ namespace StudyAndChill.API.Controllers
                 dto.NewStatus != ClassStatus.Reposed)
             {
                 return BadRequest("Status inválido");
+            }
+
+            if (dto.NewStatus == ClassStatus.MissedCanMakeUp && classSession.Status != ClassStatus.MissedCanMakeUp)
+            {
+                if (classSession.Contract != null) classSession.Contract.MakeUpQuota += 1;
+            }
+            else if (classSession.Status == ClassStatus.MissedCanMakeUp && dto.NewStatus != ClassStatus.MissedCanMakeUp)
+            {
+                if (classSession.Contract != null && classSession.Contract.MakeUpQuota > 0) classSession.Contract.MakeUpQuota -= 1;
             }
 
             classSession.Status = dto.NewStatus;
@@ -358,6 +370,7 @@ namespace StudyAndChill.API.Controllers
                 return BadRequest("Não há disponibilidade do professor para o novo horário de aulas regulares");
             }
 
+
             var isAlreadyBooked = await _context.ClassSessions.AnyAsync(cs =>
             cs.Id != id &&
             cs.TeacherId == classSession.TeacherId &&
@@ -368,6 +381,11 @@ namespace StudyAndChill.API.Controllers
             if (isAlreadyBooked)
             {
                 return BadRequest("O professor já tem um aula agendada neste horário");
+            }
+
+            if (!IsValidInterval(dto.NewStartTime))
+            {
+                return BadRequest("Os horários das aulas devem ser em intervalos de 15 minutos (00, 15, 30 ou 45).");
             }
 
             classSession.StartDate = dto.NewStartTime;
@@ -418,7 +436,7 @@ namespace StudyAndChill.API.Controllers
             }
 
             var sessions = await query
-                .OrderBy(cs => cs.StartDate)
+                .OrderByDescending(cs => cs.StartDate)
                 .Select(cs => new ClassSessionDto
                 {
                     Id = cs.Id,
@@ -427,6 +445,7 @@ namespace StudyAndChill.API.Controllers
                     Status = cs.Status,
                     TeacherId = cs.TeacherId,
                     TeacherName = cs.Teacher.Name,
+                    MeetingUrl = cs.MeetingURL,
                     Students = cs.Students.Select(s => new StudentSummaryDto
                     {
                         Id = s.Id,
@@ -435,6 +454,108 @@ namespace StudyAndChill.API.Controllers
                 }).ToListAsync();
 
             return Ok(sessions);
+        }
+
+        [HttpPut("{id}/link")]
+        [Authorize(Roles = "Admin, Teacher")]
+        public async Task<IActionResult> UpdateClassLink(int id, [FromBody] UpdateClassionDTO dto)
+        {
+            var classSession = await _context.ClassSessions.FindAsync(id);
+            if (classSession == null) return NotFound("Aula não encontrada.");
+
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
+
+            if (userIdString == null || userRole == null) return Unauthorized();
+
+            if (userRole == UserRole.Teacher.ToString())
+            {
+                var teacherId = int.Parse(userIdString);
+                if (classSession.TeacherId != teacherId)
+                {
+                    return Forbid("Só é possivel alterar o link das próprias aulas");
+                }
+            }
+
+            classSession.MeetingURL = dto.MeetingUrl;
+            await _context.SaveChangesAsync();
+
+            return Ok("Link da aula atualizado com sucesso");
+        }
+
+        [HttpPost("single")]
+        [Authorize(Roles = "Admin, Teacher")]
+        public async Task<IActionResult> CreateSingleClass([FromBody] CreateSingleClassDto dto)
+        {
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdString == null) return Unauthorized();
+            var teacherId = int.Parse(userIdString);
+
+            var contract = await _context.Contracts
+                .Include(c => c.Student)
+                .FirstOrDefaultAsync(c => c.StudentId == dto.StudentId &&
+                                            c.TeacherId == teacherId &&
+                                            c.Status == ContractStatus.Active);
+
+            if (contract == null)
+            {
+                return BadRequest("Contrato não encontrado");
+            }
+
+            var isAlreadyBooked = await _context.ClassSessions.AnyAsync(cs =>
+                cs.TeacherId == teacherId && cs.StartDate == dto.StartTime);
+
+            if (isAlreadyBooked)
+            {
+                return BadRequest("Já existe uma aula agendada para este horário.");
+            }
+
+            if (!IsValidInterval(dto.StartTime))
+            {
+                return BadRequest("Os horários das aulas devem ser em intervalos de 15 minutos (00, 15, 30 ou 45).");
+            }
+
+            var duration = contract.ClassDuration > 0 ? (int)contract.ClassDuration : 60;
+
+            var newSession = new ClassSession
+            {
+                TeacherId = teacherId,
+                Contract = contract,
+                StartDate = dto.StartTime,
+                EndDate = dto.StartTime.AddMinutes(duration),
+                Status = ClassStatus.Scheduled,
+                Students = new List<User> { contract.Student }
+            };
+
+            _context.ClassSessions.Add(newSession);
+            await _context.SaveChangesAsync();
+
+            return Ok("Aula agendada com sucesso!");
+        }
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin, Teacher")]
+        public async Task<IActionResult> DeleteClass(int id)
+        {
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userIdString == null) return Unauthorized();
+            var teacherId = int.Parse(userIdString);
+
+            var classSession = await _context.ClassSessions.FindAsync(id);
+
+            if (classSession == null) return NotFound("Aula não encontrada");
+
+            if (classSession.TeacherId != teacherId) return Forbid("Você não tem permissão para apagar esta aula.");
+
+            _context.ClassSessions.Remove(classSession);
+            await _context.SaveChangesAsync();
+
+            return Ok("Aula desmarcada com sucesso.");
+        }
+
+        private bool IsValidInterval(DateTime dateTime)
+        {
+            return dateTime.Minute % 15 == 0;
         }
 
     }

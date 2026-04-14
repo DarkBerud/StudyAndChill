@@ -220,5 +220,38 @@ namespace StudyAndChill.API.Controllers
                 return StatusCode(500, "Erro interno ao processar o cadastro completo.");
             }
         }
+
+        [HttpGet("my-students")]
+        [Authorize(Roles = "Teacher")]
+        public async Task<IActionResult> GetMyStudents()
+        {
+            var teacherIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (teacherIdString == null) return Unauthorized();
+            var teacherId = int.Parse(teacherIdString);
+
+            var students = await _context.Users
+                .Where(u => u.Role == UserRole.Student)
+                .Where(u => _context.Contracts.Any(c => c.StudentId == u.Id && c.TeacherId == teacherId))
+                .Select(u => new
+                {
+                    Id = u.Id,
+                    Name = u.Name,
+                    Email = u.Email,
+                    Phone = _context.StudentProfiles
+                                    .Where(sp => sp.UserId == u.Id)
+                                    .Select(sp => sp.Phone)
+                                    .FirstOrDefault() ?? "",
+                    ActiveContracts = _context.Contracts
+                                        .Count(c => c.StudentId == u.Id
+                                                && c.TeacherId == teacherId
+                                                && c.Status == ContractStatus.Active)
+
+                })
+                .ToListAsync();
+            return Ok(students);
+        }
+
+
+
     }
 }
